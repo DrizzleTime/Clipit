@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x64 (Ubuntu 24.04)
+            runner: ubuntu-24.04
+            qt_arch: linux_gcc_64
+            cxx_compiler: c++
+          - name: Windows x64 (Server 2025)
+            runner: windows-2025
+            qt_arch: win64_msvc2022_64
+            cxx_compiler: cl
+          - name: macOS arm64 (macOS 15)
+            runner: macos-15
+            qt_arch: clang_64
+            cxx_compiler: clang++
+
+    steps:
+      - uses: actions/checkout@v7.0.0
+
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ninja-build libgl1-mesa-dev
+
+      - name: Set up MSVC
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1.13.0
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4.3.1
+        with:
+          version: '6.8.3'
+          arch: ${{ matrix.qt_arch }}
+          cache: true
+
+      - name: Configure
+        run: cmake --preset release -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }}
+
+      - name: Build
+        run: cmake --build --preset release
+
+      - name: Test
+        run: ctest --preset release
+
+      - name: Lint QML
+        run: cmake --build build/release --target appClipit_qmllint

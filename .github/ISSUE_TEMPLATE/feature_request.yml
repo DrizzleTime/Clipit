@@ -1,0 +1,26 @@
+name: 功能建议
+description: 描述需要解决的实际使用问题
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 使用问题
+      description: 说明当前工作流中具体缺少什么，不要只写功能名称。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议方案
+      description: 说明期望的操作方式和结果。
+    validations:
+      required: true
+  - type: textarea
+    id: platforms
+    attributes:
+      label: 涉及平台
+      description: 说明是否只影响 Wayland、特定桌面环境或所有平台。
+    validations:
+      required: true

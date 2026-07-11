@@ -1,0 +1,65 @@
+# 构建目录
+/build/
+/build-*/
+/cmake-build-*/
+/out/
+
+# CMake / Ninja 生成物（防止误在源码目录中构建）
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+CTestTestfile.cmake
+DartConfiguration.tcl
+Testing/
+Makefile
+build.ninja
+.ninja_deps
+.ninja_log
+compile_commands.json
+CMakeUserPresets.json
+
+# Qt / Qt Creator 生成物和用户配置
+/.qtcreator/
+*.pro.user
+*.pro.user.*
+*.qbs.user
+*.qbs.user.*
+*.creator.user
+*.creator.user.*
+*.autosave
+*_autogen/
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+*.moc
+*.qm
+.qmake.stash
+
+# 编译产物
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.app
+*.pdb
+
+# 测试与覆盖率产物
+*.gcda
+*.gcno
+*.gcov
+*.profraw
+*.profdata
+/coverage/
+
+# 编辑器和操作系统临时文件
+*~
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
