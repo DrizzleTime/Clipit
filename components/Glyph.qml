@@ -42,6 +42,11 @@ Item {
             } else if (root.name === "screen") {
                 c.strokeRect(3, 4, 18, 13)
                 c.beginPath(); c.moveTo(9, 21); c.lineTo(15, 21); c.moveTo(12, 17); c.lineTo(12, 21); c.stroke()
+            } else if (root.name === "window") {
+                c.strokeRect(3, 4, 18, 16)
+                c.beginPath(); c.moveTo(3, 8); c.lineTo(21, 8); c.stroke()
+                c.beginPath(); c.arc(6, 6, 0.7, 0, Math.PI * 2); c.fill()
+                c.beginPath(); c.arc(9, 6, 0.7, 0, Math.PI * 2); c.fill()
             } else if (root.name === "clock") {
                 c.beginPath(); c.arc(12, 12, 8.5, 0, Math.PI * 2); c.stroke()
                 c.beginPath(); c.moveTo(12, 7); c.lineTo(12, 12); c.lineTo(15.5, 14); c.stroke()

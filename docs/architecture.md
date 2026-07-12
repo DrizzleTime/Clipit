@@ -2,7 +2,7 @@
 
 ## 目标
 
-Clipit 的核心流程是获取屏幕画面、选择区域、应用标注、保存图片和写入剪贴板。平台差异主要存在于屏幕画面的获取方式，因此架构只对抓屏后端和可独立测试的图片处理建立边界。
+Clipit 的核心流程是获取屏幕或窗口画面、选择区域、应用标注、保存图片和写入剪贴板。平台差异主要存在于画面的获取方式，因此架构只对抓屏后端和可独立测试的图片处理建立边界。
 
 ## 模块关系
 
@@ -23,7 +23,7 @@ ScreenshotService（流程与状态）
 
 `ScreenshotService` 是 QML 与 C++ 的边界，负责：
 
-- 接收区域、全屏、延时和取消命令；
+- 接收区域、窗口、全屏、延时和取消命令；
 - 驱动抓屏后端；
 - 保存待编辑图片并通知 QML 打开选区窗口；
 - 将标注数据交给解析器和渲染器；
@@ -37,19 +37,19 @@ ScreenshotService（流程与状态）
 ```text
 Idle → Delaying → Capturing → Selecting → Saving → Idle
                      │                         │
-                     └──── Fullscreen ─────────┘
+                     └──── Window / Fullscreen ┘
 ```
 
 取消或失败会清理临时选区图片并回到 `Idle`。
 
 ### 抓屏后端
 
-`ScreenCaptureBackend` 只负责产生一张完整的原始屏幕图片：
+`ScreenCaptureBackend` 接收 `Screen` 或 `ActiveWindow` 目标，只负责产生对应的原始图片：
 
-- `PortalScreenCaptureBackend` 实现 XDG Desktop Portal 的异步请求、取消、超时和服务可用性监听；
-- `QtScreenCaptureBackend` 使用 `QScreen::grabWindow()`，用于 X11、Windows 和 macOS。
+- `PortalScreenCaptureBackend` 实现 XDG Desktop Portal 的异步请求、目标能力判断、取消、超时和服务可用性监听；
+- `QtScreenCaptureBackend` 在 X11 和 Windows 下查询活动窗口后调用 `QScreen::grabWindow()`，在 macOS 下使用 Core Graphics。
 
-区域选择不是抓屏后端的职责。所有后端返回原始画面后，都复用同一个选区和标注流程。
+区域选择不是抓屏后端的职责。区域模式要求后端返回完整屏幕，再进入统一的选区和标注流程；窗口与全屏模式直接保存后端图片。
 
 ### 标注模型与渲染
 
@@ -75,7 +75,7 @@ QML Canvas 只提供编辑预览，最终 PNG 以 `AnnotationRenderer` 的结果
 
 新增抓屏方式时：
 
-1. 实现 `ScreenCaptureBackend` 的 `available()`、`capture()` 和 `cancel()`。
+1. 实现 `ScreenCaptureBackend` 的 `available()`、`capture(CaptureTarget)` 和 `cancel()`。
 2. 正确发出 `captured`、`canceled` 或 `failed` 终态信号。
 3. 在组合入口中按平台选择后端。
 4. 使用假后端测试控制器状态，不要求 CI 连接真实桌面服务。

@@ -19,7 +19,7 @@ public:
     ~PortalScreenCaptureBackend() override;
 
     bool available() const override { return m_available; }
-    void capture() override;
+    void capture(CaptureTarget target) override;
     void cancel() override;
 
 private slots:
@@ -32,6 +32,7 @@ private:
 
     bool m_available = false;
     uint m_portalVersion = 0;
+    uint m_availableTargets = 0;
     QString m_requestPath;
     QTimer *m_timeout = nullptr;
 };

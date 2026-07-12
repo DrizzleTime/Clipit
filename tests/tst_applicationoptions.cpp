@@ -39,6 +39,12 @@ void ApplicationOptionsTest::parsesCaptureModes()
              static_cast<int>(LaunchMode::RegionCapture));
 
     result = parseApplicationOptions(
+        {QStringLiteral("appClipit"), QStringLiteral("-w")});
+    QVERIFY(result.isValid());
+    QCOMPARE(static_cast<int>(result.options.mode),
+             static_cast<int>(LaunchMode::WindowCapture));
+
+    result = parseApplicationOptions(
         {QStringLiteral("appClipit"), QStringLiteral("-f")});
     QVERIFY(result.isValid());
     QCOMPARE(static_cast<int>(result.options.mode),
@@ -47,20 +53,37 @@ void ApplicationOptionsTest::parsesCaptureModes()
 
 void ApplicationOptionsTest::parsesDelay()
 {
-    const auto result = parseApplicationOptions(
+    auto result = parseApplicationOptions(
         {QStringLiteral("appClipit"), QStringLiteral("--fullscreen"),
          QStringLiteral("--delay"), QStringLiteral("5")});
 
     QVERIFY(result.isValid());
     QCOMPARE(result.options.delaySeconds, 5);
+
+    result = parseApplicationOptions(
+        {QStringLiteral("appClipit"), QStringLiteral("--window"),
+         QStringLiteral("--delay"), QStringLiteral("2")});
+    QVERIFY(result.isValid());
+    QCOMPARE(static_cast<int>(result.options.mode),
+             static_cast<int>(LaunchMode::WindowCapture));
+    QCOMPARE(result.options.delaySeconds, 2);
 }
 
 void ApplicationOptionsTest::rejectsConflictingModes()
 {
-    const auto result = parseApplicationOptions(
+    auto result = parseApplicationOptions(
         {QStringLiteral("appClipit"), QStringLiteral("--region"),
          QStringLiteral("--fullscreen")});
+    QVERIFY(!result.isValid());
 
+    result = parseApplicationOptions(
+        {QStringLiteral("appClipit"), QStringLiteral("--region"),
+         QStringLiteral("--window")});
+    QVERIFY(!result.isValid());
+
+    result = parseApplicationOptions(
+        {QStringLiteral("appClipit"), QStringLiteral("--window"),
+         QStringLiteral("--fullscreen")});
     QVERIFY(!result.isValid());
 }
 
@@ -126,6 +149,7 @@ void ApplicationOptionsTest::helpListsCaptureOptions()
 
     QVERIFY(help.startsWith(QStringLiteral("Usage: appClipit")));
     QVERIFY(help.contains(QStringLiteral("--region")));
+    QVERIFY(help.contains(QStringLiteral("--window")));
     QVERIFY(help.contains(QStringLiteral("--fullscreen")));
     QVERIFY(help.contains(QStringLiteral("--delay")));
 }

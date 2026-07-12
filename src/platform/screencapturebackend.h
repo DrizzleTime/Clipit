@@ -7,6 +7,11 @@
 
 namespace Clipit {
 
+enum class CaptureTarget {
+    Screen,
+    ActiveWindow,
+};
+
 class ScreenCaptureBackend : public QObject
 {
     Q_OBJECT
@@ -18,7 +23,7 @@ public:
     }
 
     virtual bool available() const = 0;
-    virtual void capture() = 0;
+    virtual void capture(CaptureTarget target) = 0;
     virtual void cancel() = 0;
 
 signals:

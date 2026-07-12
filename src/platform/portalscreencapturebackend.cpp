@@ -18,6 +18,14 @@
 
 namespace Clipit {
 
+namespace {
+
+constexpr quint32 ScreenTarget = 1u;
+constexpr quint32 WindowTarget = 2u;
+constexpr quint32 ActiveWindowTarget = 8u;
+
+} // namespace
+
 PortalScreenCaptureBackend::PortalScreenCaptureBackend(QObject *parent)
     : ScreenCaptureBackend(parent)
     , m_timeout(new QTimer(this))
@@ -35,6 +43,7 @@ PortalScreenCaptureBackend::PortalScreenCaptureBackend(QObject *parent)
         const bool changed = m_available;
         m_available = false;
         m_portalVersion = 0;
+        m_availableTargets = 0;
         if (changed)
             emit availableChanged();
         if (!m_requestPath.isEmpty())
@@ -62,13 +71,16 @@ void PortalScreenCaptureBackend::refreshPortal()
                           QDBusConnection::sessionBus());
     const bool available = portal.isValid();
     m_portalVersion = available ? portal.property("version").toUInt() : 0;
+    m_availableTargets = available && m_portalVersion >= 3
+                             ? portal.property("AvailableTargets").toUInt()
+                             : 0;
     if (m_available != available) {
         m_available = available;
         emit availableChanged();
     }
 }
 
-void PortalScreenCaptureBackend::capture()
+void PortalScreenCaptureBackend::capture(CaptureTarget target)
 {
     if (!m_available) {
         emit failed(tr("系统截图门户不可用，请安装 xdg-desktop-portal 及桌面后端"));
@@ -77,6 +89,29 @@ void PortalScreenCaptureBackend::capture()
     if (!m_requestPath.isEmpty()) {
         emit failed(tr("已有截图请求正在进行"));
         return;
+    }
+
+    quint32 portalTarget = ScreenTarget;
+    bool interactive = false;
+    if (target == CaptureTarget::ActiveWindow) {
+        if (m_portalVersion < 2) {
+            emit failed(tr("系统截图门户版本过低，不支持窗口截图"));
+            return;
+        }
+        if (m_portalVersion >= 3) {
+            if (m_availableTargets == 0
+                || (m_availableTargets & ActiveWindowTarget) != 0) {
+                portalTarget = ActiveWindowTarget;
+            } else if ((m_availableTargets & WindowTarget) != 0) {
+                portalTarget = WindowTarget;
+                interactive = true;
+            } else {
+                emit failed(tr("当前系统截图门户不支持窗口截图"));
+                return;
+            }
+        } else {
+            interactive = true;
+        }
     }
 
     QDBusConnection bus = QDBusConnection::sessionBus();
@@ -100,9 +135,9 @@ void PortalScreenCaptureBackend::capture()
     QVariantMap options;
     options.insert(QStringLiteral("handle_token"), token);
     if (m_portalVersion >= 2)
-        options.insert(QStringLiteral("interactive"), false);
+        options.insert(QStringLiteral("interactive"), interactive);
     if (m_portalVersion >= 3)
-        options.insert(QStringLiteral("target"), QVariant::fromValue<quint32>(1u));
+        options.insert(QStringLiteral("target"), QVariant::fromValue(portalTarget));
     options.insert(QStringLiteral("modal"), false);
     m_timeout->start();
 

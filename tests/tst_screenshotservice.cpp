@@ -18,9 +18,10 @@ public:
     }
 
     bool available() const override { return m_available; }
-    void capture() override
+    void capture(Clipit::CaptureTarget target) override
     {
         ++captureCount;
+        lastTarget = target;
         if (m_image.isNull())
             emit failed(QStringLiteral("fake failure"));
         else
@@ -31,6 +32,7 @@ public:
     bool m_available = true;
     QImage m_image;
     int captureCount = 0;
+    Clipit::CaptureTarget lastTarget = Clipit::CaptureTarget::Screen;
 };
 
 class ScreenshotServiceTest : public QObject
@@ -39,6 +41,7 @@ class ScreenshotServiceTest : public QObject
 
 private slots:
     void fullscreenCaptureTransitionsToIdle();
+    void windowCaptureUsesActiveWindowTarget();
     void regionCaptureWaitsForSelection();
     void regionCaptureRendersAndSaves();
     void cancelsDelayedCapture();
@@ -57,8 +60,25 @@ void ScreenshotServiceTest::fullscreenCaptureTransitionsToIdle()
     service.captureFullscreen();
 
     QTRY_COMPARE_WITH_TIMEOUT(savedSpy.size(), 1, 1000);
+    QCOMPARE(backend->lastTarget, Clipit::CaptureTarget::Screen);
     QCOMPARE(service.state(), ScreenshotService::CaptureState::Idle);
     QVERIFY(service.hasPreview());
+}
+
+void ScreenshotServiceTest::windowCaptureUsesActiveWindowTarget()
+{
+    QTemporaryDir directory;
+    auto *backend = new FakeCaptureBackend;
+    backend->m_image = QImage(12, 10, QImage::Format_ARGB32);
+    backend->m_image.fill(Qt::cyan);
+    ScreenshotService service(backend, Clipit::ScreenshotStorage(directory.path()), false);
+    QSignalSpy savedSpy(&service, &ScreenshotService::captureSaved);
+
+    service.captureWindow();
+
+    QTRY_COMPARE_WITH_TIMEOUT(savedSpy.size(), 1, 1000);
+    QCOMPARE(backend->lastTarget, Clipit::CaptureTarget::ActiveWindow);
+    QCOMPARE(service.state(), ScreenshotService::CaptureState::Idle);
 }
 
 void ScreenshotServiceTest::regionCaptureWaitsForSelection()
@@ -73,6 +93,7 @@ void ScreenshotServiceTest::regionCaptureWaitsForSelection()
     service.captureRegion();
 
     QTRY_COMPARE_WITH_TIMEOUT(selectionSpy.size(), 1, 1000);
+    QCOMPARE(backend->lastTarget, Clipit::CaptureTarget::Screen);
     QCOMPARE(service.state(), ScreenshotService::CaptureState::Selecting);
     QVERIFY(service.selectionSource().isValid());
     service.cancelSelection();

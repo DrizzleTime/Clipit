@@ -21,6 +21,22 @@ endif()
 
 qt_standard_project_setup(REQUIRES 6.8)
 
+add_library(clipit_capture_platform INTERFACE)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    find_package(X11 QUIET)
+    if(TARGET X11::X11)
+        target_link_libraries(clipit_capture_platform INTERFACE X11::X11)
+        target_compile_definitions(clipit_capture_platform INTERFACE CLIPIT_HAS_X11)
+    endif()
+elseif(WIN32)
+    target_link_libraries(clipit_capture_platform INTERFACE user32)
+elseif(APPLE)
+    find_library(APPLICATION_SERVICES_FRAMEWORK ApplicationServices REQUIRED)
+    target_link_libraries(clipit_capture_platform
+        INTERFACE ${APPLICATION_SERVICES_FRAMEWORK}
+    )
+endif()
+
 qt_add_library(clipit_core STATIC
     src/core/annotation.cpp
     src/core/annotation.h
@@ -79,7 +95,11 @@ target_include_directories(appClipit PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/app
 )
-target_link_libraries(appClipit PRIVATE clipit_core Qt6::Quick)
+target_link_libraries(appClipit PRIVATE
+    clipit_core
+    clipit_capture_platform
+    Qt6::Quick
+)
 clipit_enable_warnings(appClipit)
 target_compile_definitions(appClipit PRIVATE CLIPIT_VERSION="${PROJECT_VERSION}")
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -106,7 +126,7 @@ if(BUILD_TESTING)
                 $<TARGET_FILE:appClipit> --help
     )
     set_tests_properties(cli_help_without_display PROPERTIES
-        PASS_REGULAR_EXPRESSION "--region"
+        PASS_REGULAR_EXPRESSION "--window"
     )
     add_test(
         NAME cli_version_without_display
@@ -158,7 +178,7 @@ if(BUILD_TESTING)
             ${CMAKE_CURRENT_SOURCE_DIR}/src/app
         )
         target_link_libraries(tst_screenshotservice
-            PRIVATE clipit_core Qt6::Quick Qt6::Test
+            PRIVATE clipit_core clipit_capture_platform Qt6::Quick Qt6::Test
         )
         add_test(NAME screenshotservice COMMAND tst_screenshotservice)
         set_tests_properties(screenshotservice PROPERTIES

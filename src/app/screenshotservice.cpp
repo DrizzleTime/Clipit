@@ -111,6 +111,11 @@ void ScreenshotService::captureRegion(int delaySeconds)
     startCapture(Mode::Region, delaySeconds);
 }
 
+void ScreenshotService::captureWindow(int delaySeconds)
+{
+    startCapture(Mode::Window, delaySeconds);
+}
+
 void ScreenshotService::captureFullscreen(int delaySeconds)
 {
     startCapture(Mode::Fullscreen, delaySeconds);
@@ -143,7 +148,9 @@ void ScreenshotService::performCapture()
     if (m_state != CaptureState::Delaying && m_state != CaptureState::Capturing)
         return;
     setState(CaptureState::Capturing);
-    m_backend->capture();
+    const auto target = m_mode == Mode::Window ? Clipit::CaptureTarget::ActiveWindow
+                                               : Clipit::CaptureTarget::Screen;
+    m_backend->capture(target);
 }
 
 void ScreenshotService::handleCapturedImage(const QImage &image)

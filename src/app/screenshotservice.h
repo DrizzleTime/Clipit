@@ -64,6 +64,7 @@ public:
     QUrl saveDirectoryUrl() const { return QUrl::fromLocalFile(m_storage.directory()); }
 
     Q_INVOKABLE void captureRegion(int delaySeconds = 0);
+    Q_INVOKABLE void captureWindow(int delaySeconds = 0);
     Q_INVOKABLE void captureFullscreen(int delaySeconds = 0);
     Q_INVOKABLE void finishSelection(qreal x, qreal y, qreal width, qreal height,
                                      qreal viewWidth, qreal viewHeight);
@@ -93,7 +94,7 @@ signals:
     void captureFailed(const QString &message);
 
 private:
-    enum class Mode { Region, Fullscreen };
+    enum class Mode { Region, Window, Fullscreen };
 
     void startCapture(Mode mode, int delaySeconds);
     void performCapture();

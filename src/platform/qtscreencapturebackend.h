@@ -14,7 +14,7 @@ public:
     explicit QtScreenCaptureBackend(QObject *parent = nullptr);
 
     bool available() const override;
-    void capture() override;
+    void capture(CaptureTarget target) override;
     void cancel() override;
 };
 

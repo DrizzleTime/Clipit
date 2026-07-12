@@ -90,6 +90,8 @@ int runCaptureCommand(QGuiApplication &app, const ApplicationOptions &options)
     QTimer::singleShot(0, &screenshotService, [&screenshotService, options]() {
         if (options.mode == LaunchMode::RegionCapture)
             screenshotService.captureRegion(options.delaySeconds);
+        else if (options.mode == LaunchMode::WindowCapture)
+            screenshotService.captureWindow(options.delaySeconds);
         else
             screenshotService.captureFullscreen(options.delaySeconds);
     });
@@ -147,6 +149,7 @@ int main(int argc, char *argv[])
                             << QCoreApplication::applicationVersion() << Qt::endl;
         return 0;
     case LaunchMode::RegionCapture:
+    case LaunchMode::WindowCapture:
     case LaunchMode::FullscreenCapture:
     case LaunchMode::Gui:
         break;
@@ -154,6 +157,7 @@ int main(int argc, char *argv[])
 
     switch (parsed.options.mode) {
     case LaunchMode::RegionCapture:
+    case LaunchMode::WindowCapture:
     case LaunchMode::FullscreenCapture:
         return runCaptureCommand(app, parsed.options);
     case LaunchMode::Gui:

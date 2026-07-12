@@ -8,6 +8,7 @@
 enum class LaunchMode {
     Gui,
     RegionCapture,
+    WindowCapture,
     FullscreenCapture,
     Help,
     Version,

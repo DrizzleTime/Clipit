@@ -16,6 +16,9 @@ void configureParser(QCommandLineParser &parser)
         {QStringLiteral("r"), QStringLiteral("region")},
         QStringLiteral("直接开始区域截图，只显示框选层。")));
     parser.addOption(QCommandLineOption(
+        {QStringLiteral("w"), QStringLiteral("window")},
+        QStringLiteral("开始窗口截图，不启动 Clipit 主窗口。")));
+    parser.addOption(QCommandLineOption(
         {QStringLiteral("f"), QStringLiteral("fullscreen")},
         QStringLiteral("直接进行全屏截图，不启动 Clipit 主窗口。")));
     parser.addOption(QCommandLineOption(
@@ -54,20 +57,26 @@ ApplicationOptionsParseResult parseApplicationOptions(const QStringList &argumen
     }
 
     const bool region = parser.isSet(QStringLiteral("region"));
+    const bool window = parser.isSet(QStringLiteral("window"));
     const bool fullscreen = parser.isSet(QStringLiteral("fullscreen"));
-    if (region && fullscreen) {
-        result.error = QStringLiteral("--region 与 --fullscreen 不能同时使用");
+    const int captureModeCount = static_cast<int>(region) + static_cast<int>(window)
+                                 + static_cast<int>(fullscreen);
+    if (captureModeCount > 1) {
+        result.error = QStringLiteral("--region、--window 与 --fullscreen 不能同时使用");
         return result;
     }
 
     if (region)
         result.options.mode = LaunchMode::RegionCapture;
+    else if (window)
+        result.options.mode = LaunchMode::WindowCapture;
     else if (fullscreen)
         result.options.mode = LaunchMode::FullscreenCapture;
 
     if (parser.isSet(QStringLiteral("delay"))) {
-        if (!region && !fullscreen) {
-            result.error = QStringLiteral("--delay 只能与 --region 或 --fullscreen 一起使用");
+        if (captureModeCount == 0) {
+            result.error = QStringLiteral(
+                "--delay 只能与 --region、--window 或 --fullscreen 一起使用");
             return result;
         }
 

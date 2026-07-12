@@ -344,13 +344,14 @@ ApplicationWindow {
 
             Repeater {
                 model: [
+                    { icon: "window", title: qsTr("窗口截图"), note: window.screenshotService.wayland ? qsTr("由系统选择窗口") : qsTr("当前活动窗口"), action: "window" },
                     { icon: "screen", title: qsTr("全屏截图"), note: qsTr("立即捕获"), action: "screen" },
                     { icon: "clock", title: qsTr("延时截图"), note: qsTr("3 / 5 / 10 秒"), action: "delay" }
                 ]
                 delegate: Rectangle {
                     id: actionCard
                     required property var modelData
-                    width: (parent.width - 12) / 2
+                    width: (parent.width - 24) / 3
                     height: parent.height
                     radius: 13
                     color: secondaryMouse.containsMouse ? (window.darkMode ? "#292D36" : "#F9FAFF") : window.panel
@@ -382,7 +383,14 @@ ApplicationWindow {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         enabled: !window.screenshotService.busy
-                        onClicked: actionCard.modelData.action === "screen" ? window.screenshotService.captureFullscreen(0) : delayPopup.open()
+                        onClicked: {
+                            if (actionCard.modelData.action === "window")
+                                window.screenshotService.captureWindow(0)
+                            else if (actionCard.modelData.action === "screen")
+                                window.screenshotService.captureFullscreen(0)
+                            else
+                                delayPopup.open()
+                        }
                     }
                 }
             }
