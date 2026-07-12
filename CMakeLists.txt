@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(Clipit VERSION 0.1.0 LANGUAGES CXX)
+project(GrabInk VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-function(clipit_enable_warnings target)
+function(grabink_enable_warnings target)
     if(MSVC)
         target_compile_options(${target} PRIVATE /W4)
     else()
@@ -21,23 +21,23 @@ endif()
 
 qt_standard_project_setup(REQUIRES 6.8)
 
-add_library(clipit_capture_platform INTERFACE)
+add_library(grabink_capture_platform INTERFACE)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(X11 QUIET)
     if(TARGET X11::X11)
-        target_link_libraries(clipit_capture_platform INTERFACE X11::X11)
-        target_compile_definitions(clipit_capture_platform INTERFACE CLIPIT_HAS_X11)
+        target_link_libraries(grabink_capture_platform INTERFACE X11::X11)
+        target_compile_definitions(grabink_capture_platform INTERFACE GRABINK_HAS_X11)
     endif()
 elseif(WIN32)
-    target_link_libraries(clipit_capture_platform INTERFACE user32)
+    target_link_libraries(grabink_capture_platform INTERFACE user32)
 elseif(APPLE)
     find_library(APPLICATION_SERVICES_FRAMEWORK ApplicationServices REQUIRED)
-    target_link_libraries(clipit_capture_platform
+    target_link_libraries(grabink_capture_platform
         INTERFACE ${APPLICATION_SERVICES_FRAMEWORK}
     )
 endif()
 
-qt_add_library(clipit_core STATIC
+qt_add_library(grabink_core STATIC
     src/core/annotation.cpp
     src/core/annotation.h
     src/core/annotationrenderer.cpp
@@ -45,11 +45,11 @@ qt_add_library(clipit_core STATIC
     src/core/screenshotstorage.cpp
     src/core/screenshotstorage.h
 )
-target_include_directories(clipit_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(clipit_core PUBLIC Qt6::Core Qt6::Gui)
-clipit_enable_warnings(clipit_core)
+target_include_directories(grabink_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(grabink_core PUBLIC Qt6::Core Qt6::Gui)
+grabink_enable_warnings(grabink_core)
 
-set(CLIPIT_APP_SOURCES
+set(GRABINK_APP_SOURCES
     src/app/applicationoptions.cpp
     src/app/applicationoptions.h
     src/app/main.cpp
@@ -62,16 +62,16 @@ set(CLIPIT_APP_SOURCES
     src/platform/screencapturebackend.h
 )
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    list(APPEND CLIPIT_APP_SOURCES
+    list(APPEND GRABINK_APP_SOURCES
         src/platform/portalscreencapturebackend.cpp
         src/platform/portalscreencapturebackend.h
     )
 endif()
 
-qt_add_executable(appClipit ${CLIPIT_APP_SOURCES})
+qt_add_executable(grabink ${GRABINK_APP_SOURCES})
 
-qt_add_qml_module(appClipit
-    URI Clipit
+qt_add_qml_module(grabink
+    URI GrabInk
     VERSION 1.0
     QML_FILES
         Main.qml
@@ -83,38 +83,38 @@ qt_add_qml_module(appClipit
         components/Toast.qml
 )
 
-set_target_properties(appClipit PROPERTIES
-    MACOSX_BUNDLE_GUI_IDENTIFIER io.clipit.app
+set_target_properties(grabink PROPERTIES
+    MACOSX_BUNDLE_GUI_IDENTIFIER io.github.DrizzleTime.GrabInk
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
 )
 
-target_include_directories(appClipit PRIVATE
+target_include_directories(grabink PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/app
 )
-target_link_libraries(appClipit PRIVATE
-    clipit_core
-    clipit_capture_platform
+target_link_libraries(grabink PRIVATE
+    grabink_core
+    grabink_capture_platform
     Qt6::Quick
 )
-clipit_enable_warnings(appClipit)
-target_compile_definitions(appClipit PRIVATE CLIPIT_VERSION="${PROJECT_VERSION}")
+grabink_enable_warnings(grabink)
+target_compile_definitions(grabink PRIVATE GRABINK_VERSION="${PROJECT_VERSION}")
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_link_libraries(appClipit PRIVATE Qt6::DBus)
-    target_compile_definitions(appClipit PRIVATE CLIPIT_HAS_DBUS_PORTAL)
+    target_link_libraries(grabink PRIVATE Qt6::DBus)
+    target_compile_definitions(grabink PRIVATE GRABINK_HAS_DBUS_PORTAL)
 endif()
 
 include(GNUInstallDirs)
-install(TARGETS appClipit
+install(TARGETS grabink
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 install(FILES LICENSE
-    DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/Clipit
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/GrabInk
 )
 
 include(CTest)
@@ -123,7 +123,7 @@ if(BUILD_TESTING)
         NAME cli_help_without_display
         COMMAND ${CMAKE_COMMAND} -E env --unset=DISPLAY --unset=WAYLAND_DISPLAY
                 --unset=QT_QPA_PLATFORM
-                $<TARGET_FILE:appClipit> --help
+                $<TARGET_FILE:grabink> --help
     )
     set_tests_properties(cli_help_without_display PROPERTIES
         PASS_REGULAR_EXPRESSION "--window"
@@ -132,10 +132,10 @@ if(BUILD_TESTING)
         NAME cli_version_without_display
         COMMAND ${CMAKE_COMMAND} -E env --unset=DISPLAY --unset=WAYLAND_DISPLAY
                 --unset=QT_QPA_PLATFORM
-                $<TARGET_FILE:appClipit> --version
+                $<TARGET_FILE:grabink> --version
     )
     set_tests_properties(cli_version_without_display PROPERTIES
-        PASS_REGULAR_EXPRESSION "Clipit ${PROJECT_VERSION}"
+        PASS_REGULAR_EXPRESSION "GrabInk ${PROJECT_VERSION}"
     )
 
     find_package(Qt6 6.8 QUIET COMPONENTS Test)
@@ -154,13 +154,13 @@ if(BUILD_TESTING)
         qt_add_executable(tst_annotationrenderer
             tests/tst_annotationrenderer.cpp
         )
-        target_link_libraries(tst_annotationrenderer PRIVATE clipit_core Qt6::Test)
+        target_link_libraries(tst_annotationrenderer PRIVATE grabink_core Qt6::Test)
         add_test(NAME annotationrenderer COMMAND tst_annotationrenderer)
 
         qt_add_executable(tst_screenshotstorage
             tests/tst_screenshotstorage.cpp
         )
-        target_link_libraries(tst_screenshotstorage PRIVATE clipit_core Qt6::Test)
+        target_link_libraries(tst_screenshotstorage PRIVATE grabink_core Qt6::Test)
         add_test(NAME screenshotstorage COMMAND tst_screenshotstorage)
 
         qt_add_executable(tst_screenshotservice
@@ -178,7 +178,7 @@ if(BUILD_TESTING)
             ${CMAKE_CURRENT_SOURCE_DIR}/src/app
         )
         target_link_libraries(tst_screenshotservice
-            PRIVATE clipit_core clipit_capture_platform Qt6::Quick Qt6::Test
+            PRIVATE grabink_core grabink_capture_platform Qt6::Quick Qt6::Test
         )
         add_test(NAME screenshotservice COMMAND tst_screenshotservice)
         set_tests_properties(screenshotservice PROPERTIES

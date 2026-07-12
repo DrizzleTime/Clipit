@@ -5,7 +5,7 @@
 #include <QImage>
 #include <QString>
 
-namespace Clipit {
+namespace GrabInk {
 
 class ScreenshotStorage
 {
@@ -28,4 +28,4 @@ private:
     QString m_directory;
 };
 
-} // namespace Clipit
+} // namespace GrabInk

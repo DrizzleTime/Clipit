@@ -5,7 +5,7 @@
 #include <QImage>
 #include <QString>
 
-namespace Clipit {
+namespace GrabInk {
 
 class ClipboardService
 {
@@ -14,4 +14,4 @@ public:
     static bool persistWaylandPng(const QString &path, QString *error);
 };
 
-} // namespace Clipit
+} // namespace GrabInk

@@ -61,4 +61,4 @@ jobs:
         run: ctest --preset release
 
       - name: Lint QML
-        run: cmake --build build/release --target appClipit_qmllint
+        run: cmake --build build/release --target grabink_qmllint

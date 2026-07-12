@@ -9,7 +9,7 @@
 #include <QPainterPath>
 #include <QtMath>
 
-namespace Clipit {
+namespace GrabInk {
 namespace {
 
 QPointF scaledPoint(const QPointF &point, qreal scaleX, qreal scaleY,
@@ -199,4 +199,4 @@ QColor AnnotationRenderer::sampleColor(const QImage &source, const QPointF &view
     return QColor::fromRgba(source.pixel(x, y));
 }
 
-} // namespace Clipit
+} // namespace GrabInk

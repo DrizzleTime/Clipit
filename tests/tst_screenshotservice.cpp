@@ -7,7 +7,7 @@
 #include <QTemporaryDir>
 #include <QtTest/QTest>
 
-class FakeCaptureBackend final : public Clipit::ScreenCaptureBackend
+class FakeCaptureBackend final : public GrabInk::ScreenCaptureBackend
 {
     Q_OBJECT
 
@@ -18,7 +18,7 @@ public:
     }
 
     bool available() const override { return m_available; }
-    void capture(Clipit::CaptureTarget target) override
+    void capture(GrabInk::CaptureTarget target) override
     {
         ++captureCount;
         lastTarget = target;
@@ -32,7 +32,7 @@ public:
     bool m_available = true;
     QImage m_image;
     int captureCount = 0;
-    Clipit::CaptureTarget lastTarget = Clipit::CaptureTarget::Screen;
+    GrabInk::CaptureTarget lastTarget = GrabInk::CaptureTarget::Screen;
 };
 
 class ScreenshotServiceTest : public QObject
@@ -54,13 +54,13 @@ void ScreenshotServiceTest::fullscreenCaptureTransitionsToIdle()
     auto *backend = new FakeCaptureBackend;
     backend->m_image = QImage(12, 10, QImage::Format_ARGB32);
     backend->m_image.fill(Qt::yellow);
-    ScreenshotService service(backend, Clipit::ScreenshotStorage(directory.path()), false);
+    ScreenshotService service(backend, GrabInk::ScreenshotStorage(directory.path()), false);
     QSignalSpy savedSpy(&service, &ScreenshotService::captureSaved);
 
     service.captureFullscreen();
 
     QTRY_COMPARE_WITH_TIMEOUT(savedSpy.size(), 1, 1000);
-    QCOMPARE(backend->lastTarget, Clipit::CaptureTarget::Screen);
+    QCOMPARE(backend->lastTarget, GrabInk::CaptureTarget::Screen);
     QCOMPARE(service.state(), ScreenshotService::CaptureState::Idle);
     QVERIFY(service.hasPreview());
 }
@@ -71,13 +71,13 @@ void ScreenshotServiceTest::windowCaptureUsesActiveWindowTarget()
     auto *backend = new FakeCaptureBackend;
     backend->m_image = QImage(12, 10, QImage::Format_ARGB32);
     backend->m_image.fill(Qt::cyan);
-    ScreenshotService service(backend, Clipit::ScreenshotStorage(directory.path()), false);
+    ScreenshotService service(backend, GrabInk::ScreenshotStorage(directory.path()), false);
     QSignalSpy savedSpy(&service, &ScreenshotService::captureSaved);
 
     service.captureWindow();
 
     QTRY_COMPARE_WITH_TIMEOUT(savedSpy.size(), 1, 1000);
-    QCOMPARE(backend->lastTarget, Clipit::CaptureTarget::ActiveWindow);
+    QCOMPARE(backend->lastTarget, GrabInk::CaptureTarget::ActiveWindow);
     QCOMPARE(service.state(), ScreenshotService::CaptureState::Idle);
 }
 
@@ -87,13 +87,13 @@ void ScreenshotServiceTest::regionCaptureWaitsForSelection()
     auto *backend = new FakeCaptureBackend;
     backend->m_image = QImage(12, 10, QImage::Format_ARGB32);
     backend->m_image.fill(Qt::white);
-    ScreenshotService service(backend, Clipit::ScreenshotStorage(directory.path()), false);
+    ScreenshotService service(backend, GrabInk::ScreenshotStorage(directory.path()), false);
     QSignalSpy selectionSpy(&service, &ScreenshotService::selectionRequested);
 
     service.captureRegion();
 
     QTRY_COMPARE_WITH_TIMEOUT(selectionSpy.size(), 1, 1000);
-    QCOMPARE(backend->lastTarget, Clipit::CaptureTarget::Screen);
+    QCOMPARE(backend->lastTarget, GrabInk::CaptureTarget::Screen);
     QCOMPARE(service.state(), ScreenshotService::CaptureState::Selecting);
     QVERIFY(service.selectionSource().isValid());
     service.cancelSelection();
@@ -106,7 +106,7 @@ void ScreenshotServiceTest::regionCaptureRendersAndSaves()
     auto *backend = new FakeCaptureBackend;
     backend->m_image = QImage(20, 20, QImage::Format_ARGB32);
     backend->m_image.fill(Qt::white);
-    ScreenshotService service(backend, Clipit::ScreenshotStorage(directory.path()), false);
+    ScreenshotService service(backend, GrabInk::ScreenshotStorage(directory.path()), false);
     QSignalSpy selectionSpy(&service, &ScreenshotService::selectionRequested);
     QSignalSpy savedSpy(&service, &ScreenshotService::captureSaved);
 
@@ -131,7 +131,7 @@ void ScreenshotServiceTest::cancelsDelayedCapture()
     QTemporaryDir directory;
     auto *backend = new FakeCaptureBackend;
     backend->m_image = QImage(10, 10, QImage::Format_ARGB32);
-    ScreenshotService service(backend, Clipit::ScreenshotStorage(directory.path()), false);
+    ScreenshotService service(backend, GrabInk::ScreenshotStorage(directory.path()), false);
     QSignalSpy canceledSpy(&service, &ScreenshotService::captureCanceled);
 
     service.captureRegion(1);
@@ -148,7 +148,7 @@ void ScreenshotServiceTest::unavailableBackendFails()
 {
     QTemporaryDir directory;
     auto *backend = new FakeCaptureBackend(false);
-    ScreenshotService service(backend, Clipit::ScreenshotStorage(directory.path()), true);
+    ScreenshotService service(backend, GrabInk::ScreenshotStorage(directory.path()), true);
     QSignalSpy failedSpy(&service, &ScreenshotService::captureFailed);
 
     service.captureFullscreen();

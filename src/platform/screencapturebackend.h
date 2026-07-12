@@ -5,7 +5,7 @@
 #include <QImage>
 #include <QObject>
 
-namespace Clipit {
+namespace GrabInk {
 
 enum class CaptureTarget {
     Screen,
@@ -33,4 +33,4 @@ signals:
     void failed(const QString &message);
 };
 
-} // namespace Clipit
+} // namespace GrabInk

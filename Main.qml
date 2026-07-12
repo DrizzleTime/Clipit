@@ -5,7 +5,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Dialogs
-import Clipit
+import GrabInk
 
 ApplicationWindow {
     id: window
@@ -17,7 +17,7 @@ ApplicationWindow {
     minimumWidth: 520
     minimumHeight: 420
     visible: true
-    title: qsTr("Clipit · 截图")
+    title: qsTr("GrabInk · 截图")
     color: darkMode ? "#17191F" : "#F5F6F8"
 
     readonly property bool darkMode: Application.styleHints.colorScheme === Qt.Dark
@@ -238,7 +238,7 @@ ApplicationWindow {
             Text {
                 width: parent.width - 92
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Clipit"
+                text: "GrabInk"
                 color: window.textPrimary
                 font.pixelSize: 18
                 font.weight: Font.DemiBold
@@ -279,7 +279,7 @@ ApplicationWindow {
             }
             Text {
                 text: window.screenshotService.wayland
-                      ? qsTr("安全读取画面后，由 Clipit 完成框选与标注")
+                      ? qsTr("安全读取画面后，由 GrabInk 完成框选与标注")
                       : qsTr("拖动框选区域，松开后即可保存")
                 color: window.textSecondary
                 font.pixelSize: 13
@@ -417,7 +417,7 @@ ApplicationWindow {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 2
                     Text { text: window.screenshotService.portalAvailable ? qsTr("Wayland 安全捕获已就绪") : qsTr("Wayland 截图门户不可用"); color: window.textPrimary; font.pixelSize: 12; font.weight: Font.Medium }
-                    Text { text: qsTr("系统负责安全交付画面，框选和标注由 Clipit 完成"); color: window.textSecondary; font.pixelSize: 10 }
+                    Text { text: qsTr("系统负责安全交付画面，框选和标注由 GrabInk 完成"); color: window.textSecondary; font.pixelSize: 10 }
                 }
             }
         }

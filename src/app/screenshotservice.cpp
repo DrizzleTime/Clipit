@@ -8,7 +8,7 @@
 #include "src/platform/qtscreencapturebackend.h"
 #include "src/platform/screencapturebackend.h"
 
-#ifdef CLIPIT_HAS_DBUS_PORTAL
+#ifdef GRABINK_HAS_DBUS_PORTAL
 #include "src/platform/portalscreencapturebackend.h"
 #endif
 
@@ -30,27 +30,27 @@ bool isWaylandSession()
            || qEnvironmentVariableIsSet("WAYLAND_DISPLAY");
 }
 
-Clipit::ScreenCaptureBackend *createBackend(bool wayland)
+GrabInk::ScreenCaptureBackend *createBackend(bool wayland)
 {
-#ifdef CLIPIT_HAS_DBUS_PORTAL
+#ifdef GRABINK_HAS_DBUS_PORTAL
     if (wayland)
-        return new Clipit::PortalScreenCaptureBackend;
+        return new GrabInk::PortalScreenCaptureBackend;
 #else
     Q_UNUSED(wayland)
 #endif
-    return new Clipit::QtScreenCaptureBackend;
+    return new GrabInk::QtScreenCaptureBackend;
 }
 
 } // namespace
 
 ScreenshotService::ScreenshotService(QObject *parent)
-    : ScreenshotService(createBackend(isWaylandSession()), Clipit::ScreenshotStorage(),
+    : ScreenshotService(createBackend(isWaylandSession()), GrabInk::ScreenshotStorage(),
                         isWaylandSession(), parent)
 {
 }
 
-ScreenshotService::ScreenshotService(Clipit::ScreenCaptureBackend *backend,
-                                     Clipit::ScreenshotStorage storage, bool wayland,
+ScreenshotService::ScreenshotService(GrabInk::ScreenCaptureBackend *backend,
+                                     GrabInk::ScreenshotStorage storage, bool wayland,
                                      QObject *parent)
     : QObject(parent)
     , m_backend(backend)
@@ -68,17 +68,17 @@ ScreenshotService::ScreenshotService(Clipit::ScreenCaptureBackend *backend,
 
 void ScreenshotService::connectBackend()
 {
-    connect(m_backend, &Clipit::ScreenCaptureBackend::availableChanged, this,
+    connect(m_backend, &GrabInk::ScreenCaptureBackend::availableChanged, this,
             &ScreenshotService::portalAvailableChanged);
-    connect(m_backend, &Clipit::ScreenCaptureBackend::captured, this,
+    connect(m_backend, &GrabInk::ScreenCaptureBackend::captured, this,
             &ScreenshotService::handleCapturedImage);
-    connect(m_backend, &Clipit::ScreenCaptureBackend::canceled, this,
+    connect(m_backend, &GrabInk::ScreenCaptureBackend::canceled, this,
             [this](const QString &message) {
                 clearSelectionSource();
                 setState(CaptureState::Idle);
                 emit captureCanceled(message);
             });
-    connect(m_backend, &Clipit::ScreenCaptureBackend::failed, this,
+    connect(m_backend, &GrabInk::ScreenCaptureBackend::failed, this,
             &ScreenshotService::fail);
 }
 
@@ -148,8 +148,8 @@ void ScreenshotService::performCapture()
     if (m_state != CaptureState::Delaying && m_state != CaptureState::Capturing)
         return;
     setState(CaptureState::Capturing);
-    const auto target = m_mode == Mode::Window ? Clipit::CaptureTarget::ActiveWindow
-                                               : Clipit::CaptureTarget::Screen;
+    const auto target = m_mode == Mode::Window ? GrabInk::CaptureTarget::ActiveWindow
+                                               : GrabInk::CaptureTarget::Screen;
     m_backend->capture(target);
 }
 
@@ -196,16 +196,16 @@ void ScreenshotService::finishAnnotatedSelection(qreal x, qreal y, qreal width, 
         return;
     }
 
-    QVector<Clipit::Annotation> annotations;
+    QVector<GrabInk::Annotation> annotations;
     QString error;
-    if (!Clipit::parseAnnotations(annotationValues, &annotations, &error)) {
+    if (!GrabInk::parseAnnotations(annotationValues, &annotations, &error)) {
         fail(error);
         return;
     }
-    const Clipit::SelectionGeometry geometry{
+    const GrabInk::SelectionGeometry geometry{
         QRectF(x, y, width, height), QSizeF(viewWidth, viewHeight)};
     setState(CaptureState::Saving);
-    const QImage result = Clipit::AnnotationRenderer::render(
+    const QImage result = GrabInk::AnnotationRenderer::render(
         m_pendingImage, geometry, annotations, &error);
     if (result.isNull()) {
         fail(error);
@@ -218,7 +218,7 @@ void ScreenshotService::finishAnnotatedSelection(qreal x, qreal y, qreal width, 
 QString ScreenshotService::pixelColor(qreal x, qreal y, qreal viewWidth,
                                       qreal viewHeight) const
 {
-    return Clipit::AnnotationRenderer::sampleColor(
+    return GrabInk::AnnotationRenderer::sampleColor(
                m_pendingImage, QPointF(x, y), QSizeF(viewWidth, viewHeight))
         .name(QColor::HexRgb)
         .toUpper();
@@ -259,7 +259,7 @@ void ScreenshotService::acceptImage(const QImage &image)
         fail(error);
         return;
     }
-    if (!Clipit::ClipboardService::copyImage(image, &error)) {
+    if (!GrabInk::ClipboardService::copyImage(image, &error)) {
         fail(tr("截图已保存，但复制到剪贴板失败：%1").arg(error));
         return;
     }
@@ -276,7 +276,7 @@ void ScreenshotService::copyLatest()
 {
     const QImage image(m_lastFilePath);
     QString error;
-    if (!Clipit::ClipboardService::copyImage(image, &error)) {
+    if (!GrabInk::ClipboardService::copyImage(image, &error)) {
         emit captureFailed(error.isEmpty() ? tr("没有可复制的截图") : error);
         return;
     }

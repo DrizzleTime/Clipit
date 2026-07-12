@@ -6,7 +6,7 @@
 
 #include <QVariantMap>
 
-namespace Clipit {
+namespace GrabInk {
 namespace {
 
 bool finitePoint(const QPointF &point)
@@ -98,4 +98,4 @@ bool parseAnnotations(const QVariantList &values, QVector<Annotation> *annotatio
     return true;
 }
 
-} // namespace Clipit
+} // namespace GrabInk

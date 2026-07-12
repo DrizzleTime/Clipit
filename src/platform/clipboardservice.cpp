@@ -7,7 +7,7 @@
 #include <QProcess>
 #include <QStandardPaths>
 
-namespace Clipit {
+namespace GrabInk {
 
 bool ClipboardService::copyImage(const QImage &image, QString *error)
 {
@@ -62,4 +62,4 @@ bool ClipboardService::persistWaylandPng(const QString &path, QString *error)
 #endif
 }
 
-} // namespace Clipit
+} // namespace GrabInk

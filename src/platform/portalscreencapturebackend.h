@@ -8,7 +8,7 @@
 
 class QTimer;
 
-namespace Clipit {
+namespace GrabInk {
 
 class PortalScreenCaptureBackend final : public ScreenCaptureBackend
 {
@@ -37,4 +37,4 @@ private:
     QTimer *m_timeout = nullptr;
 };
 
-} // namespace Clipit
+} // namespace GrabInk

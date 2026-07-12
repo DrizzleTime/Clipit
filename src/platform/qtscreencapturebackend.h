@@ -4,7 +4,7 @@
 
 #include "screencapturebackend.h"
 
-namespace Clipit {
+namespace GrabInk {
 
 class QtScreenCaptureBackend final : public ScreenCaptureBackend
 {
@@ -18,4 +18,4 @@ public:
     void cancel() override;
 };
 
-} // namespace Clipit
+} // namespace GrabInk

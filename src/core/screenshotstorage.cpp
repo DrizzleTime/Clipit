@@ -11,7 +11,7 @@
 #include <QStandardPaths>
 #include <QUuid>
 
-namespace Clipit {
+namespace GrabInk {
 
 ScreenshotStorage::ScreenshotStorage()
 {
@@ -45,7 +45,7 @@ bool ScreenshotStorage::save(const QImage &image, QString *path, QString *error)
     }
     const QString stamp = QDateTime::currentDateTime().toString(
         QStringLiteral("yyyyMMdd-HHmmss-zzz"));
-    *path = directory.filePath(QStringLiteral("Clipit-%1.png").arg(stamp));
+    *path = directory.filePath(QStringLiteral("GrabInk-%1.png").arg(stamp));
     return writePngAtomically(image, *path, error);
 }
 
@@ -95,7 +95,7 @@ bool ScreenshotStorage::createSelectionImage(const QImage &image, QString *path,
                                              QString *error) const
 {
     *path = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation))
-                .filePath(QStringLiteral("clipit-selection-%1.png")
+                .filePath(QStringLiteral("grabink-selection-%1.png")
                               .arg(QUuid::createUuid().toString(QUuid::Id128)));
     if (!writePngAtomically(image, *path, error)) {
         *error = QStringLiteral("无法准备截图选区：%1").arg(*error);
@@ -109,7 +109,7 @@ QString ScreenshotStorage::defaultDirectory()
     QString pictures = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
     if (pictures.isEmpty())
         pictures = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
-    return QDir(pictures).filePath(QStringLiteral("Clipit"));
+    return QDir(pictures).filePath(QStringLiteral("GrabInk"));
 }
 
 bool ScreenshotStorage::writePngAtomically(const QImage &image, const QString &path,
@@ -132,4 +132,4 @@ bool ScreenshotStorage::writePngAtomically(const QImage &image, const QString &p
     return true;
 }
 
-} // namespace Clipit
+} // namespace GrabInk

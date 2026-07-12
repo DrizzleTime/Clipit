@@ -3,6 +3,7 @@
 #include "src/core/screenshotstorage.h"
 
 #include <QFile>
+#include <QFileInfo>
 #include <QTemporaryDir>
 #include <QtTest/QTest>
 
@@ -20,7 +21,7 @@ void ScreenshotStorageTest::savesPng()
 {
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
-    Clipit::ScreenshotStorage storage(directory.path());
+    GrabInk::ScreenshotStorage storage(directory.path());
     QImage image(8, 6, QImage::Format_ARGB32);
     image.fill(Qt::cyan);
     QString path;
@@ -28,6 +29,7 @@ void ScreenshotStorageTest::savesPng()
 
     QVERIFY2(storage.save(image, &path, &error), qPrintable(error));
     QVERIFY(QFile::exists(path));
+    QVERIFY(QFileInfo(path).fileName().startsWith(QStringLiteral("GrabInk-")));
     QCOMPARE(QImage(path).size(), image.size());
 }
 
@@ -43,7 +45,7 @@ void ScreenshotStorageTest::replacesCopyAtomically()
     QImage oldDestination(4, 4, QImage::Format_ARGB32);
     oldDestination.fill(Qt::blue);
     QVERIFY(oldDestination.save(destinationPath));
-    Clipit::ScreenshotStorage storage(directory.path());
+    GrabInk::ScreenshotStorage storage(directory.path());
     QString error;
 
     QVERIFY2(storage.saveCopy(sourcePath, destinationPath, &error), qPrintable(error));
@@ -58,7 +60,7 @@ void ScreenshotStorageTest::preservesDestinationWhenSourceFails()
     QImage original(4, 4, QImage::Format_ARGB32);
     original.fill(Qt::blue);
     QVERIFY(original.save(destinationPath));
-    Clipit::ScreenshotStorage storage(directory.path());
+    GrabInk::ScreenshotStorage storage(directory.path());
     QString error;
 
     QVERIFY(!storage.saveCopy(directory.filePath(QStringLiteral("missing.png")),

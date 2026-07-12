@@ -10,7 +10,7 @@
 #include <QVariantList>
 #include <QVector>
 
-namespace Clipit {
+namespace GrabInk {
 
 enum class AnnotationType {
     Rectangle,
@@ -42,4 +42,4 @@ struct SelectionGeometry
 bool parseAnnotations(const QVariantList &values, QVector<Annotation> *annotations,
                       QString *error);
 
-} // namespace Clipit
+} // namespace GrabInk

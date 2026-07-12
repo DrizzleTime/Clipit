@@ -34,7 +34,7 @@ int runGui(QGuiApplication &app)
         &app,
         []() { QCoreApplication::exit(CaptureFailedExitCode); },
         Qt::QueuedConnection);
-    engine.loadFromModule("Clipit", "Main");
+    engine.loadFromModule("GrabInk", "Main");
     if (engine.rootObjects().isEmpty())
         return CaptureFailedExitCode;
 
@@ -51,7 +51,7 @@ int runCaptureCommand(QGuiApplication &app, const ApplicationOptions &options)
                          QTextStream(stdout) << path << Qt::endl;
                          if (screenshotService.wayland()) {
                              QString clipboardError;
-                             if (!Clipit::ClipboardService::persistWaylandPng(
+                             if (!GrabInk::ClipboardService::persistWaylandPng(
                                      path, &clipboardError)) {
                                  QTextStream(stderr)
                                      << QStringLiteral("截图已保存，但复制到剪贴板失败：%1")
@@ -80,7 +80,7 @@ int runCaptureCommand(QGuiApplication &app, const ApplicationOptions &options)
         selectionEngine->setInitialProperties({
             {QStringLiteral("screenshotService"), QVariant::fromValue(&screenshotService)},
         });
-        selectionEngine->loadFromModule("Clipit", "CaptureOverlay");
+        selectionEngine->loadFromModule("GrabInk", "CaptureOverlay");
         if (selectionEngine->rootObjects().isEmpty()) {
             QTextStream(stderr) << QStringLiteral("无法加载区域截图框选层") << Qt::endl;
             return CaptureFailedExitCode;
@@ -102,9 +102,9 @@ int runCaptureCommand(QGuiApplication &app, const ApplicationOptions &options)
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication::setApplicationName(QStringLiteral("Clipit"));
-    QCoreApplication::setApplicationVersion(QStringLiteral(CLIPIT_VERSION));
-    QCoreApplication::setOrganizationName(QStringLiteral("Clipit"));
+    QCoreApplication::setApplicationName(QStringLiteral("GrabInk"));
+    QCoreApplication::setApplicationVersion(QStringLiteral(GRABINK_VERSION));
+    QCoreApplication::setOrganizationName(QStringLiteral("GrabInk"));
 
     QStringList arguments;
     arguments.reserve(argc);

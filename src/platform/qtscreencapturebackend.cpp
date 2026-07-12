@@ -12,14 +12,14 @@
 #elif defined(Q_OS_MACOS)
 #include <ApplicationServices/ApplicationServices.h>
 #include <unistd.h>
-#elif defined(CLIPIT_HAS_X11)
+#elif defined(GRABINK_HAS_X11)
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #endif
 
 namespace {
 
-#if defined(Q_OS_WIN) || defined(CLIPIT_HAS_X11)
+#if defined(Q_OS_WIN) || defined(GRABINK_HAS_X11)
 struct NativeWindowTarget
 {
     WId id = 0;
@@ -45,7 +45,7 @@ NativeWindowTarget activeNativeWindow()
     }
     return target;
 }
-#elif defined(CLIPIT_HAS_X11)
+#elif defined(GRABINK_HAS_X11)
 Window topLevelX11Window(Display *display, Window window)
 {
     Window current = window;
@@ -204,7 +204,7 @@ QImage activeMacWindowImage()
 
 } // namespace
 
-namespace Clipit {
+namespace GrabInk {
 
 QtScreenCaptureBackend::QtScreenCaptureBackend(QObject *parent)
     : ScreenCaptureBackend(parent)
@@ -230,7 +230,7 @@ void QtScreenCaptureBackend::capture(CaptureTarget target)
     } else {
 #if defined(Q_OS_MACOS)
         image = activeMacWindowImage();
-#elif defined(Q_OS_WIN) || defined(CLIPIT_HAS_X11)
+#elif defined(Q_OS_WIN) || defined(GRABINK_HAS_X11)
         const NativeWindowTarget window = activeNativeWindow();
         if (!window.id) {
             emit failed(tr("无法确定当前活动窗口"));
@@ -258,4 +258,4 @@ void QtScreenCaptureBackend::cancel()
 {
 }
 
-} // namespace Clipit
+} // namespace GrabInk

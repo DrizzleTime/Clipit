@@ -6,7 +6,7 @@
 
 #include <QImage>
 
-namespace Clipit {
+namespace GrabInk {
 
 class AnnotationRenderer
 {
@@ -17,4 +17,4 @@ public:
                               const QSizeF &viewportSize);
 };
 
-} // namespace Clipit
+} // namespace GrabInk

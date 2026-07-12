@@ -3,7 +3,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import Clipit
+import GrabInk
 
 Window {
     id: overlay

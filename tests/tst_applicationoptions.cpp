@@ -23,7 +23,7 @@ private slots:
 
 void ApplicationOptionsTest::defaultsToGui()
 {
-    const auto result = parseApplicationOptions({QStringLiteral("appClipit")});
+    const auto result = parseApplicationOptions({QStringLiteral("grabink")});
 
     QVERIFY(result.isValid());
     QCOMPARE(static_cast<int>(result.options.mode), static_cast<int>(LaunchMode::Gui));
@@ -33,19 +33,19 @@ void ApplicationOptionsTest::defaultsToGui()
 void ApplicationOptionsTest::parsesCaptureModes()
 {
     auto result = parseApplicationOptions(
-        {QStringLiteral("appClipit"), QStringLiteral("--region")});
+        {QStringLiteral("grabink"), QStringLiteral("--region")});
     QVERIFY(result.isValid());
     QCOMPARE(static_cast<int>(result.options.mode),
              static_cast<int>(LaunchMode::RegionCapture));
 
     result = parseApplicationOptions(
-        {QStringLiteral("appClipit"), QStringLiteral("-w")});
+        {QStringLiteral("grabink"), QStringLiteral("-w")});
     QVERIFY(result.isValid());
     QCOMPARE(static_cast<int>(result.options.mode),
              static_cast<int>(LaunchMode::WindowCapture));
 
     result = parseApplicationOptions(
-        {QStringLiteral("appClipit"), QStringLiteral("-f")});
+        {QStringLiteral("grabink"), QStringLiteral("-f")});
     QVERIFY(result.isValid());
     QCOMPARE(static_cast<int>(result.options.mode),
              static_cast<int>(LaunchMode::FullscreenCapture));
@@ -54,14 +54,14 @@ void ApplicationOptionsTest::parsesCaptureModes()
 void ApplicationOptionsTest::parsesDelay()
 {
     auto result = parseApplicationOptions(
-        {QStringLiteral("appClipit"), QStringLiteral("--fullscreen"),
+        {QStringLiteral("grabink"), QStringLiteral("--fullscreen"),
          QStringLiteral("--delay"), QStringLiteral("5")});
 
     QVERIFY(result.isValid());
     QCOMPARE(result.options.delaySeconds, 5);
 
     result = parseApplicationOptions(
-        {QStringLiteral("appClipit"), QStringLiteral("--window"),
+        {QStringLiteral("grabink"), QStringLiteral("--window"),
          QStringLiteral("--delay"), QStringLiteral("2")});
     QVERIFY(result.isValid());
     QCOMPARE(static_cast<int>(result.options.mode),
@@ -72,17 +72,17 @@ void ApplicationOptionsTest::parsesDelay()
 void ApplicationOptionsTest::rejectsConflictingModes()
 {
     auto result = parseApplicationOptions(
-        {QStringLiteral("appClipit"), QStringLiteral("--region"),
+        {QStringLiteral("grabink"), QStringLiteral("--region"),
          QStringLiteral("--fullscreen")});
     QVERIFY(!result.isValid());
 
     result = parseApplicationOptions(
-        {QStringLiteral("appClipit"), QStringLiteral("--region"),
+        {QStringLiteral("grabink"), QStringLiteral("--region"),
          QStringLiteral("--window")});
     QVERIFY(!result.isValid());
 
     result = parseApplicationOptions(
-        {QStringLiteral("appClipit"), QStringLiteral("--window"),
+        {QStringLiteral("grabink"), QStringLiteral("--window"),
          QStringLiteral("--fullscreen")});
     QVERIFY(!result.isValid());
 }
@@ -90,7 +90,7 @@ void ApplicationOptionsTest::rejectsConflictingModes()
 void ApplicationOptionsTest::rejectsDelayWithoutCaptureMode()
 {
     const auto result = parseApplicationOptions(
-        {QStringLiteral("appClipit"), QStringLiteral("--delay"), QStringLiteral("1")});
+        {QStringLiteral("grabink"), QStringLiteral("--delay"), QStringLiteral("1")});
 
     QVERIFY(!result.isValid());
 }
@@ -108,7 +108,7 @@ void ApplicationOptionsTest::rejectsInvalidDelay()
 {
     QFETCH(QString, delay);
     const auto result = parseApplicationOptions(
-        {QStringLiteral("appClipit"), QStringLiteral("--region"),
+        {QStringLiteral("grabink"), QStringLiteral("--region"),
          QStringLiteral("--delay"), delay});
 
     QVERIFY(!result.isValid());
@@ -117,37 +117,37 @@ void ApplicationOptionsTest::rejectsInvalidDelay()
 void ApplicationOptionsTest::rejectsUnknownAndPositionalArguments()
 {
     auto result = parseApplicationOptions(
-        {QStringLiteral("appClipit"), QStringLiteral("--unknown")});
+        {QStringLiteral("grabink"), QStringLiteral("--unknown")});
     QVERIFY(!result.isValid());
 
     result = parseApplicationOptions(
-        {QStringLiteral("appClipit"), QStringLiteral("region")});
+        {QStringLiteral("grabink"), QStringLiteral("region")});
     QVERIFY(!result.isValid());
 }
 
 void ApplicationOptionsTest::parsesHelpAndVersion()
 {
     auto result = parseApplicationOptions(
-        {QStringLiteral("appClipit"), QStringLiteral("--help")});
+        {QStringLiteral("grabink"), QStringLiteral("--help")});
     QVERIFY(result.isValid());
     QCOMPARE(static_cast<int>(result.options.mode), static_cast<int>(LaunchMode::Help));
 
     result = parseApplicationOptions(
-        {QStringLiteral("appClipit"), QStringLiteral("--help-all")});
+        {QStringLiteral("grabink"), QStringLiteral("--help-all")});
     QVERIFY(result.isValid());
     QCOMPARE(static_cast<int>(result.options.mode), static_cast<int>(LaunchMode::Help));
 
     result = parseApplicationOptions(
-        {QStringLiteral("appClipit"), QStringLiteral("--version")});
+        {QStringLiteral("grabink"), QStringLiteral("--version")});
     QVERIFY(result.isValid());
     QCOMPARE(static_cast<int>(result.options.mode), static_cast<int>(LaunchMode::Version));
 }
 
 void ApplicationOptionsTest::helpListsCaptureOptions()
 {
-    const QString help = applicationHelpText(QStringLiteral("appClipit"));
+    const QString help = applicationHelpText(QStringLiteral("grabink"));
 
-    QVERIFY(help.startsWith(QStringLiteral("Usage: appClipit")));
+    QVERIFY(help.startsWith(QStringLiteral("Usage: grabink")));
     QVERIFY(help.contains(QStringLiteral("--region")));
     QVERIFY(help.contains(QStringLiteral("--window")));
     QVERIFY(help.contains(QStringLiteral("--fullscreen")));

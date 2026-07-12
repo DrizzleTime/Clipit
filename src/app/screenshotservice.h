@@ -12,7 +12,7 @@
 
 class QTimer;
 
-namespace Clipit {
+namespace GrabInk {
 class ScreenCaptureBackend;
 }
 
@@ -46,8 +46,8 @@ public:
 
     explicit ScreenshotService(QObject *parent = nullptr);
     // The service takes ownership of the injected backend.
-    ScreenshotService(Clipit::ScreenCaptureBackend *backend,
-                      Clipit::ScreenshotStorage storage, bool wayland,
+    ScreenshotService(GrabInk::ScreenCaptureBackend *backend,
+                      GrabInk::ScreenshotStorage storage, bool wayland,
                       QObject *parent = nullptr);
     ~ScreenshotService() override;
 
@@ -106,8 +106,8 @@ private:
     void clearSelectionSource();
     void connectBackend();
 
-    Clipit::ScreenCaptureBackend *m_backend = nullptr;
-    Clipit::ScreenshotStorage m_storage;
+    GrabInk::ScreenCaptureBackend *m_backend = nullptr;
+    GrabInk::ScreenshotStorage m_storage;
     QTimer *m_delayTimer = nullptr;
     CaptureState m_state = CaptureState::Idle;
     Mode m_mode = Mode::Region;

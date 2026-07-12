@@ -9,7 +9,7 @@ namespace {
 
 void configureParser(QCommandLineParser &parser)
 {
-    parser.setApplicationDescription(QStringLiteral("Clipit 截图工具"));
+    parser.setApplicationDescription(QStringLiteral("GrabInk 截图工具"));
     parser.addHelpOption();
     parser.addVersionOption();
     parser.addOption(QCommandLineOption(
@@ -17,10 +17,10 @@ void configureParser(QCommandLineParser &parser)
         QStringLiteral("直接开始区域截图，只显示框选层。")));
     parser.addOption(QCommandLineOption(
         {QStringLiteral("w"), QStringLiteral("window")},
-        QStringLiteral("开始窗口截图，不启动 Clipit 主窗口。")));
+        QStringLiteral("开始窗口截图，不启动 GrabInk 主窗口。")));
     parser.addOption(QCommandLineOption(
         {QStringLiteral("f"), QStringLiteral("fullscreen")},
-        QStringLiteral("直接进行全屏截图，不启动 Clipit 主窗口。")));
+        QStringLiteral("直接进行全屏截图，不启动 GrabInk 主窗口。")));
     parser.addOption(QCommandLineOption(
         {QStringLiteral("d"), QStringLiteral("delay")},
         QStringLiteral("截图前等待的秒数，范围为 0 到 3600。"),

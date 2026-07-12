@@ -23,7 +23,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: Clipit 版本或提交
+      label: GrabInk 版本或提交
       placeholder: 0.1.0 或 Git commit
     validations:
       required: true

@@ -27,26 +27,26 @@ void AnnotationRendererTest::parsesKnownAnnotations()
                     {QStringLiteral("color"), QStringLiteral("#123456")}},
         QVariantMap{{QStringLiteral("type"), QStringLiteral("text")},
                     {QStringLiteral("x1"), 2}, {QStringLiteral("y1"), 3},
-                    {QStringLiteral("text"), QStringLiteral("Clipit")}},
+                    {QStringLiteral("text"), QStringLiteral("GrabInk")}},
     };
-    QVector<Clipit::Annotation> annotations;
+    QVector<GrabInk::Annotation> annotations;
     QString error;
 
-    QVERIFY(Clipit::parseAnnotations(values, &annotations, &error));
+    QVERIFY(GrabInk::parseAnnotations(values, &annotations, &error));
     QCOMPARE(annotations.size(), 2);
-    QCOMPARE(annotations.first().type, Clipit::AnnotationType::Rectangle);
+    QCOMPARE(annotations.first().type, GrabInk::AnnotationType::Rectangle);
     QCOMPARE(annotations.first().color, QColor(QStringLiteral("#123456")));
-    QCOMPARE(annotations.last().text, QStringLiteral("Clipit"));
+    QCOMPARE(annotations.last().text, QStringLiteral("GrabInk"));
 }
 
 void AnnotationRendererTest::rejectsUnknownAnnotation()
 {
     const QVariantList values{QVariantMap{{QStringLiteral("type"),
                                            QStringLiteral("unknown")}}};
-    QVector<Clipit::Annotation> annotations;
+    QVector<GrabInk::Annotation> annotations;
     QString error;
 
-    QVERIFY(!Clipit::parseAnnotations(values, &annotations, &error));
+    QVERIFY(!GrabInk::parseAnnotations(values, &annotations, &error));
     QVERIFY(!error.isEmpty());
 }
 
@@ -54,15 +54,15 @@ void AnnotationRendererTest::cropsAndRendersRectangle()
 {
     QImage source(100, 80, QImage::Format_ARGB32_Premultiplied);
     source.fill(Qt::white);
-    Clipit::Annotation rectangle;
-    rectangle.type = Clipit::AnnotationType::Rectangle;
+    GrabInk::Annotation rectangle;
+    rectangle.type = GrabInk::AnnotationType::Rectangle;
     rectangle.color = Qt::red;
     rectangle.width = 2;
     rectangle.start = QPointF(2, 2);
     rectangle.end = QPointF(17, 12);
     QString error;
 
-    const QImage result = Clipit::AnnotationRenderer::render(
+    const QImage result = GrabInk::AnnotationRenderer::render(
         source, {{10, 10, 20, 15}, {100, 80}}, {rectangle}, &error);
 
     QVERIFY2(!result.isNull(), qPrintable(error));
@@ -77,7 +77,7 @@ void AnnotationRendererTest::scalesSelectionCoordinates()
     source.fill(Qt::white);
     QString error;
 
-    const QImage result = Clipit::AnnotationRenderer::render(
+    const QImage result = GrabInk::AnnotationRenderer::render(
         source, {{10, 5, 20, 15}, {100, 80}}, {}, &error);
 
     QVERIFY2(!result.isNull(), qPrintable(error));
@@ -91,13 +91,13 @@ void AnnotationRendererTest::rendersMosaicInsideEffectBounds()
         for (int x = 0; x < source.width(); ++x)
             source.setPixelColor(x, y, (x + y) % 2 == 0 ? Qt::black : Qt::white);
     }
-    Clipit::Annotation mosaic;
-    mosaic.type = Clipit::AnnotationType::Mosaic;
+    GrabInk::Annotation mosaic;
+    mosaic.type = GrabInk::AnnotationType::Mosaic;
     mosaic.start = QPointF(0, 0);
     mosaic.end = QPointF(12, 12);
     QString error;
 
-    const QImage result = Clipit::AnnotationRenderer::render(
+    const QImage result = GrabInk::AnnotationRenderer::render(
         source, {{0, 0, 24, 16}, {24, 16}}, {mosaic}, &error);
 
     QVERIFY2(!result.isNull(), qPrintable(error));
@@ -111,7 +111,7 @@ void AnnotationRendererTest::samplesViewportColor()
     source.fill(Qt::black);
     source.setPixelColor(1, 1, Qt::green);
 
-    QCOMPARE(Clipit::AnnotationRenderer::sampleColor(source, {75, 75}, {100, 100}),
+    QCOMPARE(GrabInk::AnnotationRenderer::sampleColor(source, {75, 75}, {100, 100}),
              QColor(Qt::green));
 }
 

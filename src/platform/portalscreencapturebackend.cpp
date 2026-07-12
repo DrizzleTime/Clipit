@@ -16,7 +16,7 @@
 #include <QDBusPendingReply>
 #include <QDBusServiceWatcher>
 
-namespace Clipit {
+namespace GrabInk {
 
 namespace {
 
@@ -115,7 +115,7 @@ void PortalScreenCaptureBackend::capture(CaptureTarget target)
     }
 
     QDBusConnection bus = QDBusConnection::sessionBus();
-    const QString token = QStringLiteral("clipit_%1").arg(
+    const QString token = QStringLiteral("grabink_%1").arg(
         QUuid::createUuid().toString(QUuid::Id128));
     QString sender = bus.baseService();
     sender.remove(QLatin1Char(':'));
@@ -249,4 +249,4 @@ void PortalScreenCaptureBackend::fail(const QString &message)
     emit failed(message);
 }
 
-} // namespace Clipit
+} // namespace GrabInk
