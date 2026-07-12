@@ -15,6 +15,10 @@ Window {
 
     property real startX: 0
     property real startY: 0
+    property real dragSelectionX: 0
+    property real dragSelectionY: 0
+    property real dragSelectionWidth: 0
+    property real dragSelectionHeight: 0
     property real selectionX: 0
     property real selectionY: 0
     property real selectionWidth: 0
@@ -29,11 +33,16 @@ Window {
     property bool textEditing: false
     property string activeTool: ""
     property string previousDrawTool: "pen"
+    property string selectionDragMode: ""
     property string selectedColor: "#FF5967"
     property string hoveredPixelColor: "#000000"
     property var annotations: []
     property var draftAnnotation: null
     readonly property color shadeColor: "#52000000"
+    readonly property real minimumSelectionSize: 8
+    readonly property real newSelectionDragThreshold: 3
+    readonly property real resizeHitMargin: 7
+    readonly property real selectionHandleSize: 8
     readonly property bool selectionValid: selectionWidth >= 8 && selectionHeight >= 8
     readonly property real imageLeft: (width - baseImage.paintedWidth) / 2
     readonly property real imageTop: (height - baseImage.paintedHeight) / 2
@@ -70,6 +79,7 @@ Window {
         textEditing = false
         activeTool = ""
         previousDrawTool = "pen"
+        selectionDragMode = ""
         annotations = []
         draftAnnotation = null
         showFullScreen()
@@ -82,6 +92,171 @@ Window {
 
     function clampImageY(value) {
         return Math.max(selectableTop, Math.min(selectableBottom, value))
+    }
+
+    function resizeModeAt(x, y) {
+        if (!editing || !selectionValid)
+            return ""
+
+        const left = selectionX
+        const top = selectionY
+        const right = selectionX + selectionWidth
+        const bottom = selectionY + selectionHeight
+        const nearLeft = Math.abs(x - left) <= resizeHitMargin
+        const nearRight = Math.abs(x - right) <= resizeHitMargin
+        const nearTop = Math.abs(y - top) <= resizeHitMargin
+        const nearBottom = Math.abs(y - bottom) <= resizeHitMargin
+        const withinHorizontal = x >= left - resizeHitMargin
+                && x <= right + resizeHitMargin
+        const withinVertical = y >= top - resizeHitMargin
+                && y <= bottom + resizeHitMargin
+
+        if (nearLeft && nearTop) return "nw"
+        if (nearRight && nearTop) return "ne"
+        if (nearLeft && nearBottom) return "sw"
+        if (nearRight && nearBottom) return "se"
+        if (nearTop && withinHorizontal) return "n"
+        if (nearBottom && withinHorizontal) return "s"
+        if (nearLeft && withinVertical) return "w"
+        if (nearRight && withinVertical) return "e"
+        return ""
+    }
+
+    function resizeCursor(mode) {
+        if (mode === "n" || mode === "s") return Qt.SizeVerCursor
+        if (mode === "e" || mode === "w") return Qt.SizeHorCursor
+        if (mode === "nw" || mode === "se") return Qt.SizeFDiagCursor
+        if (mode === "ne" || mode === "sw") return Qt.SizeBDiagCursor
+        return Qt.ArrowCursor
+    }
+
+    function selectionCursorShape() {
+        if (selectionDragMode === "new" || selectionDragMode === "pendingNew")
+            return Qt.CrossCursor
+        const mode = selectionDragMode !== ""
+                ? selectionDragMode : resizeModeAt(pointerX, pointerY)
+        if (mode !== "")
+            return resizeCursor(mode)
+        if (!editing || !pointInsideSelection(pointerX, pointerY))
+            return Qt.CrossCursor
+        if (activeTool === "text")
+            return Qt.IBeamCursor
+        return activeTool !== "" ? Qt.CrossCursor : Qt.ArrowCursor
+    }
+
+    function handleCenterX(mode) {
+        if (mode.indexOf("w") !== -1) return selectionX
+        if (mode.indexOf("e") !== -1) return selectionX + selectionWidth
+        return selectionX + selectionWidth / 2
+    }
+
+    function handleCenterY(mode) {
+        if (mode.indexOf("n") !== -1) return selectionY
+        if (mode.indexOf("s") !== -1) return selectionY + selectionHeight
+        return selectionY + selectionHeight / 2
+    }
+
+    function clearSelectionContent() {
+        editing = false
+        activeTool = ""
+        colorPaletteVisible = false
+        textEditing = false
+        textInput.text = ""
+        annotations = []
+        draftAnnotation = null
+        annotationLayer.requestPaint()
+    }
+
+    function beginNewSelection(x, y) {
+        clearSelectionContent()
+        const imageX = clampImageX(x)
+        const imageY = clampImageY(y)
+        startX = imageX
+        startY = imageY
+        selectionX = imageX
+        selectionY = imageY
+        selectionWidth = 0
+        selectionHeight = 0
+        selectionDragMode = "new"
+    }
+
+    function prepareNewSelection(x, y) {
+        startX = clampImageX(x)
+        startY = clampImageY(y)
+        colorPaletteVisible = false
+        selectionDragMode = "pendingNew"
+    }
+
+    function beginSelectionResize(mode) {
+        selectionDragMode = mode
+        dragSelectionX = selectionX
+        dragSelectionY = selectionY
+        dragSelectionWidth = selectionWidth
+        dragSelectionHeight = selectionHeight
+        colorPaletteVisible = false
+        draftAnnotation = null
+    }
+
+    function translateAnnotations(deltaX, deltaY) {
+        if ((deltaX === 0 && deltaY === 0) || annotations.length === 0)
+            return
+
+        const translated = []
+        for (let i = 0; i < annotations.length; ++i) {
+            const item = annotations[i]
+            const copy = {}
+            for (let key in item)
+                copy[key] = item[key]
+            if (typeof item.x1 === "number") copy.x1 = item.x1 + deltaX
+            if (typeof item.y1 === "number") copy.y1 = item.y1 + deltaY
+            if (typeof item.x2 === "number") copy.x2 = item.x2 + deltaX
+            if (typeof item.y2 === "number") copy.y2 = item.y2 + deltaY
+            if (item.points) {
+                copy.points = []
+                for (let j = 0; j < item.points.length; ++j) {
+                    copy.points.push({
+                        x: item.points[j].x + deltaX,
+                        y: item.points[j].y + deltaY
+                    })
+                }
+            }
+            translated.push(copy)
+        }
+        annotations = translated
+    }
+
+    function updateSelectionResize(x, y) {
+        const mode = selectionDragMode
+        const originalRight = dragSelectionX + dragSelectionWidth
+        const originalBottom = dragSelectionY + dragSelectionHeight
+        const imageX = clampImageX(x)
+        const imageY = clampImageY(y)
+        let left = dragSelectionX
+        let top = dragSelectionY
+        let right = originalRight
+        let bottom = originalBottom
+
+        if (mode.indexOf("w") !== -1)
+            left = Math.max(selectableLeft,
+                            Math.min(originalRight - minimumSelectionSize, imageX))
+        if (mode.indexOf("e") !== -1)
+            right = Math.min(selectableRight,
+                             Math.max(dragSelectionX + minimumSelectionSize, imageX))
+        if (mode.indexOf("n") !== -1)
+            top = Math.max(selectableTop,
+                           Math.min(originalBottom - minimumSelectionSize, imageY))
+        if (mode.indexOf("s") !== -1)
+            bottom = Math.min(selectableBottom,
+                              Math.max(dragSelectionY + minimumSelectionSize, imageY))
+
+        const deltaX = selectionX - left
+        const deltaY = selectionY - top
+        selectionX = left
+        selectionY = top
+        selectionWidth = right - left
+        selectionHeight = bottom - top
+        translateAnnotations(deltaX, deltaY)
+        annotationLayer.requestPaint()
     }
 
     function cancel() {
@@ -103,16 +278,10 @@ Window {
     }
 
     function resetSelection() {
-        editing = false
-        activeTool = ""
-        colorPaletteVisible = false
-        textEditing = false
-        textInput.text = ""
-        annotations = []
-        draftAnnotation = null
+        selectionDragMode = ""
+        clearSelectionContent()
         selectionWidth = 0
         selectionHeight = 0
-        annotationLayer.requestPaint()
     }
 
     function undo() {
@@ -259,13 +428,35 @@ Window {
         z: 3
     }
 
+    Item {
+        anchors.fill: parent
+        visible: overlay.editing && overlay.selectionValid
+        z: 6
+
+        Repeater {
+            model: ["nw", "n", "ne", "e", "se", "s", "sw", "w"]
+
+            delegate: Rectangle {
+                id: selectionHandle
+                required property string modelData
+                x: overlay.handleCenterX(modelData) - width / 2
+                y: overlay.handleCenterY(modelData) - height / 2
+                width: overlay.selectionHandleSize
+                height: overlay.selectionHandleSize
+                radius: 1
+                color: "white"
+                border.width: 1
+                border.color: "#4358E8"
+            }
+        }
+    }
+
     MouseArea {
         id: selectMouse
         anchors.fill: parent
         enabled: !overlay.textEditing
-        cursorShape: !overlay.editing ? Qt.CrossCursor
-                     : overlay.activeTool === "text" ? Qt.IBeamCursor
-                     : overlay.activeTool !== "" ? Qt.CrossCursor : Qt.ArrowCursor
+        hoverEnabled: true
+        cursorShape: overlay.selectionCursorShape()
         z: 5
 
         onPressed: mouse => {
@@ -274,17 +465,20 @@ Window {
             overlay.pointerX = mouse.x
             overlay.pointerY = mouse.y
             if (!overlay.editing) {
-                const imageX = overlay.clampImageX(mouse.x)
-                const imageY = overlay.clampImageY(mouse.y)
-                overlay.startX = imageX
-                overlay.startY = imageY
-                overlay.selectionX = imageX
-                overlay.selectionY = imageY
-                overlay.selectionWidth = 0
-                overlay.selectionHeight = 0
+                overlay.beginNewSelection(mouse.x, mouse.y)
                 return
             }
-            if (overlay.activeTool === "" || !overlay.pointInsideSelection(mouse.x, mouse.y))
+
+            const resizeMode = overlay.resizeModeAt(mouse.x, mouse.y)
+            if (resizeMode !== "") {
+                overlay.beginSelectionResize(resizeMode)
+                return
+            }
+            if (!overlay.pointInsideSelection(mouse.x, mouse.y)) {
+                overlay.prepareNewSelection(mouse.x, mouse.y)
+                return
+            }
+            if (overlay.activeTool === "")
                 return
 
             if (overlay.activeTool === "picker") {
@@ -323,13 +517,27 @@ Window {
             }
             if (!pressed || overlay.finishing)
                 return
-            if (!overlay.editing) {
+            if (overlay.selectionDragMode === "pendingNew") {
+                const pendingX = overlay.clampImageX(mouse.x)
+                const pendingY = overlay.clampImageY(mouse.y)
+                if (Math.abs(pendingX - overlay.startX) < overlay.newSelectionDragThreshold
+                        && Math.abs(pendingY - overlay.startY)
+                                < overlay.newSelectionDragThreshold) {
+                    return
+                }
+                overlay.beginNewSelection(overlay.startX, overlay.startY)
+            }
+            if (overlay.selectionDragMode === "new") {
                 const imageX = overlay.clampImageX(mouse.x)
                 const imageY = overlay.clampImageY(mouse.y)
                 overlay.selectionX = Math.min(overlay.startX, imageX)
                 overlay.selectionY = Math.min(overlay.startY, imageY)
                 overlay.selectionWidth = Math.abs(imageX - overlay.startX)
                 overlay.selectionHeight = Math.abs(imageY - overlay.startY)
+                return
+            }
+            if (overlay.selectionDragMode !== "") {
+                overlay.updateSelectionResize(mouse.x, mouse.y)
                 return
             }
             if (!overlay.draftAnnotation)
@@ -345,10 +553,19 @@ Window {
         onReleased: {
             if (overlay.finishing)
                 return
-            if (!overlay.editing) {
+            if (overlay.selectionDragMode === "pendingNew") {
+                overlay.selectionDragMode = ""
+                return
+            }
+            if (overlay.selectionDragMode === "new") {
+                overlay.selectionDragMode = ""
                 if (overlay.selectionValid) {
                     overlay.editing = true
                 }
+                return
+            }
+            if (overlay.selectionDragMode !== "") {
+                overlay.selectionDragMode = ""
                 return
             }
             if (!overlay.draftAnnotation)
@@ -358,6 +575,12 @@ Window {
             if (overlay.draftAnnotation.type === "pen" || dx >= 2 || dy >= 2)
                 overlay.annotations = overlay.annotations.concat([overlay.draftAnnotation])
             overlay.draftAnnotation = null
+        }
+
+        onCanceled: {
+            overlay.selectionDragMode = ""
+            overlay.draftAnnotation = null
+            overlay.editing = overlay.selectionValid
         }
     }
 
